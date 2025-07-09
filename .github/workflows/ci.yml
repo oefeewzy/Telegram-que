@@ -1,0 +1,41 @@
+name: CI/CD build delayed_message
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y cmake g++ zlib1g-dev libssl-dev
+
+    - name: Build TDLib
+      run: |
+        git clone https://github.com/tdlib/td.git
+        cd td
+        mkdir build && cd build
+        cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF ..
+        cmake --build . --target install
+
+    - name: Build delayed_message project
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+    - name: Upload binary artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: delayed_message_binary
+        path: build/delayed_message
